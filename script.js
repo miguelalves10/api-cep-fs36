@@ -2,6 +2,30 @@
 const cep = document.querySelector('#cep');
 const numero = document.querySelector('#numero');
 
+const listasEstados = async () => {
+  const estadoSelect = document.querySelector('#estado');
+
+  const response = await axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados`);
+  console.log('estados', response.data);
+
+  //const apenas para armazenar o conteúdo do response
+  const listaEstados = response.data;
+
+  let optionEstados = '';
+
+  //listEstados poderia ser response.data.forEach
+  listaEstados.forEach(estado => {
+    
+    //para pegar os elementos apenas da sigla e nome respectivamente do response (que no caso é do estado)
+    optionEstados = optionEstados + `<option value="${estado.sigla}"> ${estado.nome}</option>`
+  });
+
+    console.log('optionEstados', optionEstados);
+
+  estadoSelect.textHTML = listOption.join('');
+}
+
+
 const consultaCep = async () => {
   let cepValue = cep.value;
   console.log(cepValue);
