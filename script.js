@@ -1,30 +1,49 @@
-//console.log('js link');
 const cep = document.querySelector('#cep');
 const numero = document.querySelector('#numero');
 
-const listasEstados = async () => {
-  const estadoSelect = document.querySelector('#estado');
+const carregarListaEstados = async () => {
+  const ufSelect = document.querySelector('#uf');
 
-  const response = await axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados`);
-  console.log('estados', response.data);
+  const res = await axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados`);
+  //console.log('estados', res.data);
 
-  //const apenas para armazenar o conteúdo do response
-  const listaEstados = response.data;
-
+  const listaEstados = res.data.sort((a, b) => (a.nome > b.nome) ? 1 : -1);
   let optionEstados = '';
 
-  //listEstados poderia ser response.data.forEach
-  listaEstados.forEach(estado => {
-    
-    //para pegar os elementos apenas da sigla e nome respectivamente do response (que no caso é do estado)
-    optionEstados = optionEstados + `<option value="${estado.sigla}"> ${estado.nome}</option>`
+  listaEstados.forEach((estado) => {
+    //console.log(`<option value="${estado.sigla}">${estado.nome}</option>`)
+
+    optionEstados = optionEstados + `<option value="${estado.sigla}">${estado.nome}</option>`;
   });
 
-    console.log('optionEstados', optionEstados);
+  console.log('optionEstados', optionEstados);
 
-  estadoSelect.textHTML = listOption.join('');
+  ufSelect.textHTML = optionEstados;
 }
 
+carregarListaEstados();
+
+const carregarListaCidadePorUF = async siglaUf => {
+  const cidadeSelect = document.querySelector('#localidade');
+
+  const res = await axios.get(`https://brasilapi.com.br/api/ibge/municipios/v1/${siglaUf}`);
+  console.log('cidades', res.data);
+
+  let cidades = res.data;
+
+  let optionCidades = '';
+
+  cidades.forEach((cidade) => {
+    //console.log(`<option value="${estado.sigla}">${estado.nome}</option>`)
+
+    optionCidades = optionCidades + `<option value="${cidade.nome}">${cidade.nome}</option>`;
+  });
+
+
+  console.log('optionCidades', optionCidades);
+
+  cidadeSelect.innerHTML = optionCidades;
+}
 
 const consultaCep = async () => {
   let cepValue = cep.value;
@@ -32,10 +51,10 @@ const consultaCep = async () => {
 
   if (cepValue.length === 8) {
     try {
-      const response = await axios.get(`https://brasilapi.com.br/api/cep/v2/${cepValue}`);
-      console.log(response.data);
+      const res = await axios.get(`https://brasilapi.com.br/api/cep/v2/${cepValue}`);
+      console.log(res.data);
 
-      preencherCampos(response.data);
+      preencherCampos(res.data);
       numero.focus();
 
     } catch (error) {
@@ -44,14 +63,19 @@ const consultaCep = async () => {
   }
 }
 
-const preencherCampos = data => {
-  const rua = document.querySelector('#rua');
+const preencherCampos = async data => {
+  const logradouro = document.querySelector('#logradouro');
   const bairro = document.querySelector('#bairro');
-  const estado = document.querySelector('#estado');
+  const uf = document.querySelector('#uf');
+  const cidade = document.querySelector('#localidade');
 
-  rua.value = data.street;
+  logradouro.value = data.street;
   bairro.value = data.neighborhood;
-  estado.value = data.state;
+  uf.value = data.state;
+
+  await carregarListaCidadePorUF(data.state);
+
+  cidade.value = data.city.toUpperCase();
 
 }
 
